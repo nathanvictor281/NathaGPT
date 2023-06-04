@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ChatGPT</title>
+    <title>ChatGPT Web Interface</title>
     <style>
         body {
-            background-color: #f5f5f5;
+            background-color: #222;
+            color: #fff;
             font-family: Arial, sans-serif;
         }
 
         h1 {
             text-align: center;
             margin-top: 20px;
+            color: #fff;
         }
 
         .chatbox {
@@ -19,7 +21,7 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             padding: 10px;
-            background-color: #fff;
+            background-color: #333;
             overflow-y: scroll;
         }
 
@@ -29,11 +31,11 @@
         }
 
         .user-message {
-            color: #0645ad;
+            color: #0696ff;
         }
 
         .chatbot-message {
-            color: #333;
+            color: #fff;
         }
 
         .input-container {
@@ -48,12 +50,14 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 14px;
+            color: #fff;
+            background-color: #555;
         }
 
         #sendButton {
             margin-left: 5px;
             padding: 5px 10px;
-            background-color: #0645ad;
+            background-color: #0696ff;
             color: #fff;
             border: none;
             border-radius: 4px;
@@ -61,7 +65,7 @@
         }
 
         #sendButton:hover {
-            background-color: #003366;
+            background-color: #045b9d;
         }
     </style>
 </head>
@@ -69,11 +73,69 @@
     <h1>ChatGPT</h1>
     <div class="chatbox" id="chatbox"></div>
     <div class="input-container">
-        <input type="text" id="userInput" placeholder="Type your message..." />
+        <input type="text" id="userInput" placeholder="Type your message..." autocomplete="off">
         <button id="sendButton">Send</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="script.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var apiKey = prompt("Please enter your ChatGPT API key:");
+            if (!apiKey) {
+                alert("API key is required. Please refresh the page and enter a valid API key.");
+                return;
+            }
+
+            const chatboxElement = document.getElementById("chatbox");
+            const userInputElement = document.getElementById("userInput");
+            const sendButton = document.getElementById("sendButton");
+
+            const openai = axios.create({
+                baseURL: "https://api.openai.com/v1",
+                headers: {
+                    "Authorization": "Bearer " + apiKey,
+                    "Content-Type": "application/json"
+                }
+            });
+
+            async function sendMessage() {
+                const userInput = userInputElement.value;
+                userInputElement.value = "";
+                appendMessage("User: " + userInput, "user-message");
+
+                try {
+                    const response = await openai.post("/chat/completions", {
+                        model: "gpt-3.5-turbo",
+                        messages: [
+                            { role: "system", content: "You are a helpful assistant." },
+                            { role: "user", content: userInput }
+                        ]
+                    });
+
+                    const chatbotMessage = response.data.choices[0].message.content;
+                    appendMessage("ChatGPT: " + chatbotMessage, "chatbot-message");
+                } catch (error) {
+                    console.error("Error:", error);
+                }
+            }
+
+            function appendMessage(message, className) {
+                const messageElement = document.createElement("p");
+                messageElement.className = className;
+                messageElement.innerText = message;
+                chatboxElement.appendChild(messageElement);
+
+                // Automatically scroll to the bottom of the chatbox
+                chatboxElement.scrollTop = chatboxElement.scrollHeight;
+            }
+
+            sendButton.addEventListener("click", sendMessage);
+            userInputElement.addEventListener("keydown", function(event) {
+                if (event.key === "Enter") {
+                    sendMessage();
+                }
+            });
+        });
+    </script>
 </body>
 </html>
