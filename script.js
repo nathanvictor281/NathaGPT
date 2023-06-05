@@ -19,7 +19,7 @@ async function sendMessage() {
 
     try {
         const response = await axios.post("https://api.openai.com/v1/chat/completions", {
-            model: "gpt-3.5-turbo",
+            model: "gpt-4.0-turbo",
             messages: [{ role: "system", content: "You are a helpful assistant." }, { role: "user", content: userInput }]
         }, {
             headers: {
